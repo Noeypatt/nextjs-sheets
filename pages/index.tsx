@@ -13,6 +13,7 @@ import {
   TextField,
 } from '@mui/material'
 import styles from '../styles/Home.module.css'
+import * as api from '../api/index'
 
 const Home: NextPage = () => {
   const [email, setEmail] = useState('')
@@ -47,6 +48,7 @@ const Home: NextPage = () => {
     setSubscribe(false)
 
     alert(content.data.tableRange)
+    // const res = await api.submitForm(JSON.stringify(form))
   }
 
   return (
