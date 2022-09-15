@@ -1,54 +1,54 @@
 import { useState } from 'react'
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  TextField,
-} from '@mui/material'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import styles from '../styles/Home.module.css'
-import * as api from '../api/index'
 
 const Home: NextPage = () => {
   const [email, setEmail] = useState('')
-  const [bitkubAccount, setBtkubAccount] = useState('')
   const [phone, setPhone] = useState('')
-  const [waitlist, setWaitlist] = useState(false)
-  const [subscribe, setSubscribe] = useState(false)
+  const [note, setNote] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState({
+    email: false,
+    phone: false,
+  })
 
   const handleSubmit = async () => {
-    let form = {
-      email: email,
-      bitkub_account: Boolean(bitkubAccount),
-      phone: phone,
-      waitlist: waitlist,
-      subscribe: subscribe,
+    setLoading(true)
+
+    if (email && phone) {
+      let form = {
+        email: email,
+        phone: phone,
+        note: note,
+      }
+
+      const rawResponse = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      })
+      const content = await rawResponse.json()
+
+      setEmail('')
+      setPhone('')
+      setNote('')
+      setLoading(false)
+
+      alert(content.data.tableRange)
+    } else {
+      if (!email) {
+        setError((prev) => ({ ...prev, email: true }))
+      }
+      if (!phone) {
+        setError((prev) => ({ ...prev, phone: true }))
+      }
+      setLoading(false)
     }
-
-    const rawResponse = await fetch('/api/submit', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(form),
-    })
-    const content = await rawResponse.json()
-
-    setEmail('')
-    setBtkubAccount('')
-    setPhone('')
-    setWaitlist(false)
-    setSubscribe(false)
-
-    alert(content.data.tableRange)
-    // const res = await api.submitForm(JSON.stringify(form))
   }
 
   return (
@@ -77,51 +77,35 @@ const Home: NextPage = () => {
             label="Email"
             placeholder="example@gmail.com"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setError((prev) => ({ ...prev, email: false }))
+              setEmail(event.target.value)
+            }}
+            error={error.email}
+            helperText={error.email && 'Please input your email'}
           />
-          <FormControl>
-            <FormLabel>Bitkub Account</FormLabel>
-            <RadioGroup
-              value={bitkubAccount}
-              onChange={(event) => setBtkubAccount(event.target.value)}
-            >
-              <FormControlLabel value="true" control={<Radio />} label="True" />
-              <FormControlLabel
-                value="false"
-                control={<Radio />}
-                label="False"
-              />
-            </RadioGroup>
-          </FormControl>
           <TextField
             required
             type="tel"
             label="Phone"
-            placeholder="0987654321"
+            placeholder="09xxxxxxxx"
             value={phone}
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) => {
+              setError((prev) => ({ ...prev, phone: false }))
+              setPhone(event.target.value)
+            }}
+            error={error.phone}
+            helperText={error.phone && 'Please input your phone number'}
           />
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={waitlist}
-                  onChange={(event) => setWaitlist(event.target.checked)}
-                />
-              }
-              label="Waitlist"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={subscribe}
-                  onChange={(event) => setSubscribe(event.target.checked)}
-                />
-              }
-              label="Subscribe"
-            />
-          </FormControl>
-          <Button variant="contained" onClick={handleSubmit}>
+          <TextField
+            label="Note"
+            multiline
+            rows={4}
+            placeholder="take some note"
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+          <Button variant="contained" onClick={handleSubmit} disabled={loading}>
             Submit Form
           </Button>
         </Box>

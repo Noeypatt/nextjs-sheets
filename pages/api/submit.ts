@@ -3,10 +3,8 @@ import { google } from 'googleapis'
 
 type SheetForm = {
   email: string
-  bitkub_account: boolean
   phone: string
-  waitlist: boolean
-  subscribe: boolean
+  note: string
 }
 
 export default async function handler(
@@ -39,25 +37,17 @@ export default async function handler(
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: 'A1:E1',
+      range: 'A1:C1',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: [
-          [
-            body.email,
-            body.bitkub_account,
-            body.phone,
-            body.waitlist,
-            body.subscribe,
-          ],
-        ],
+        values: [[body.email, body.phone, body.note]],
       },
     })
 
     return res.status(201).json({
       data: response.data,
     })
-  } catch (e) {
-    return res.status(e.code).send({ message: e.message })
+  } catch (e: any) {
+    return res.status(e.code).send({ message: (e as Error).message })
   }
 }
