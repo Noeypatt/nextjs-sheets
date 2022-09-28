@@ -9,5 +9,6 @@ export const SubmitSheets = async (formData: FormRegisterInput) => {
     },
     body: JSON.stringify(formData),
   })
-  return await rawResponse.json()
+  const content = await rawResponse.json()
+  return content
 }
