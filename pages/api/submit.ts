@@ -1,10 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { google } from 'googleapis'
 
-type SheetForm = {
+const clientEmail = process.env.GOOGLE_CLIENT_EMAIL
+const privateKey = process.env.GOOGLE_PRIVATE_KEY
+const spreadsheetId = process.env.GOOGLE_SHEET_ID
+
+enum RegisterErrorCode {
+  SheetsAuth = 'SHEET-ERROR-AUTH',
+  SpreadSheets = 'SHEET-ERROR-GOOGLE-SPREAD-SHEET-ID',
+}
+
+type FormRegisterInput = {
   email: string
-  phone: string
-  note: string
+  verifiedAccount: string
+  phoneNumber: number
+  allow: boolean
+  subscribe: boolean
 }
 
 export default async function handler(
@@ -12,16 +23,30 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).send({ message: 'Only POST requests allowed' })
+    return res
+      .status(405)
+      .send({ error: { message: 'Only POST requests allowed' } })
   }
 
-  const body = req.body as SheetForm
+  if (!clientEmail || !privateKey) {
+    return res
+      .status(500)
+      .send({ error: { message: RegisterErrorCode.SheetsAuth } })
+  }
+
+  if (!spreadsheetId) {
+    return res
+      .status(500)
+      .send({ error: { message: RegisterErrorCode.SpreadSheets } })
+  }
+
+  const body = req.body as FormRegisterInput
 
   try {
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        client_email: clientEmail,
+        private_key: privateKey?.replace(/\\n/g, '\n'),
       },
       scopes: [
         'https://www.googleapis.com/auth/drive',
@@ -36,18 +61,20 @@ export default async function handler(
     })
 
     const response = await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: 'A1:C1',
+      spreadsheetId,
+      range: 'A1:E1',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: [[body.email, body.phone, body.note]],
+        values: [[body.email, body.phoneNumber]],
       },
     })
 
     return res.status(201).json({
       data: response.data,
     })
-  } catch (e: any) {
-    return res.status(e.code).send({ message: (e as Error).message })
+  } catch (e) {
+    return res
+      .status((e as any).code)
+      .send({ error: { message: (e as Error).message } })
   }
 }

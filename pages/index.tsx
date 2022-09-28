@@ -20,7 +20,7 @@ const Home: NextPage = () => {
     if (email && phone) {
       let form = {
         email: email,
-        phone: phone,
+        phoneNumber: phone,
         note: note,
       }
 
