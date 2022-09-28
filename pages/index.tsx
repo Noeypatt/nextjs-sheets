@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { Box, Button, TextField, Typography } from '@mui/material'
+import { Box, Button, TextField } from '@mui/material'
 import styles from '../styles/Home.module.css'
+import { SubmitSheets } from '../services'
 
 const Home: NextPage = () => {
   const [email, setEmail] = useState('')
@@ -21,18 +22,9 @@ const Home: NextPage = () => {
       let form = {
         email: email,
         phoneNumber: phone,
-        note: note,
       }
 
-      const rawResponse = await fetch('/api/submit', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      })
-      const content = await rawResponse.json()
+      const content = await SubmitSheets(form)
 
       setEmail('')
       setPhone('')

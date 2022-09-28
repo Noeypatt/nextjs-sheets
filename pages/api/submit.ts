@@ -10,12 +10,12 @@ enum RegisterErrorCode {
   SpreadSheets = 'SHEET-ERROR-GOOGLE-SPREAD-SHEET-ID',
 }
 
-type FormRegisterInput = {
+export type FormRegisterInput = {
   email: string
-  verifiedAccount: string
-  phoneNumber: number
-  allow: boolean
-  subscribe: boolean
+  verifiedAccount?: string
+  phoneNumber: string
+  allow?: boolean
+  subscribe?: boolean
 }
 
 export default async function handler(
